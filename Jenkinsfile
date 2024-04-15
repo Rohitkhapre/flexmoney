@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        //DOCKER_REGISTRY_URL = "https://hub.docker.com/"
+        // DOCKER_REGISTRY_URL = "https://hub.docker.com/"
         SERVER_IPS = "13.127.182.78"  // Add EC2 instance IPs here
     }
 
@@ -13,24 +13,24 @@ pipeline {
             }
         }
 
-    stage('Build and Push Docker Images') {
-        steps {
-            script {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    // Docker login
-                    sh "docker login -u $DOCKER_USERNAME --password-stdin <<< $DOCKER_PASSWORD"
+        stage('Build and Push Docker Images') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        // Docker login
+                        sh "echo \$DOCKER_PASSWORD | docker login -u \$DOCKER_USERNAME --password-stdin"
 
-                    // Build and push Docker images
-                    docker.build("backend-app", "./backend")
-                    docker.build("frontend-app", "./frontend")
-                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
-                    docker.image("backend-app").push("latest")
-                    docker.image("frontend-app").push("latest")
+                        // Build and push Docker images
+                        docker.build("backend-app", "./backend")
+                        docker.build("frontend-app", "./frontend")
+                        docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
+                            docker.image("backend-app").push("latest")
+                            docker.image("frontend-app").push("latest")
+                        }
                     }
                 }
             }
         }
-    }
 
         stage('Deploy to Servers') {
             steps {
