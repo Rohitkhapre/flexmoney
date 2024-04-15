@@ -2,35 +2,45 @@ pipeline {
     agent any
 
     environment {
-        SERVER_IPS = "13.127.182.78"  // Add EC2 instance IPs here
+        DOCKER_HUB_CREDENTIALS = credentials('dockerhub') // Jenkins credentials ID for Docker Hub login
+        BACKEND_IMAGE_NAME = 'rohitpawar27/backend'
+        FRONTEND_IMAGE_NAME = 'rohitpawar27/frontend'
+        DOCKERFILE_BACKEND = './backend/Dockerfile'
+        DOCKERFILE_FRONTEND = './frontend/Dockerfile'
     }
-
+    
     stages {
-        stage('Checkout') {
+        stage('Checkout Source Code') {
             steps {
                 checkout scm
             }
         }
 
-        stage('Deploy to Servers') {
+        stage('Build Backend Image') {
             steps {
                 script {
-                    withCredentials([sshUserPrivateKey(credentialsId: 'EC2', keyFileVariable: 'SSH_KEY')]) {
-                        SERVER_IPS.each { ip ->
-                            sshCommand remote: "user@$ip", command: "cd /home/ubuntu/flexmoney && git pull && docker-compose pull && docker-compose up -d", key: "${SSH_KEY}"
-                        }
-                    }
+                    docker.build(BACKEND_IMAGE_NAME, "-f ${DOCKERFILE_BACKEND} ./backend")
                 }
             }
         }
-    }
-    
-    post {
-        success {
-            echo 'Pipeline succeeded!'
+        
+        stage('Build Frontend Image') {
+            steps {
+                script {
+                    docker.build(FRONTEND_IMAGE_NAME, "-f ${DOCKERFILE_FRONTEND} ./frontend")
+                }
+            }
         }
-        failure {
-            echo 'Pipeline failed!'
+        
+        stage('Push Images to Docker Hub') {
+            steps {
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKER_HUB_CREDENTIALS) {
+                        docker.image(BACKEND_IMAGE_NAME).push()
+                        docker.image(FRONTEND_IMAGE_NAME).push()
+                    }
+                }
+            }
         }
     }
 }
