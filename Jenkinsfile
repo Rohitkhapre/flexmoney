@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_REGISTRY_URL = "https://hub.docker.com/u/rohitpawar27"
+        DOCKER_REGISTRY_URL = "https://hub.docker.com/"
         SERVER_IPS = "13.127.182.78"  // Add EC2 instance IPs here
     }
 
