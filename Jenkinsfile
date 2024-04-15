@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKER_REGISTRY_URL = "https://hub.docker.com/u/rohitpawar27"
-        SERVER_IPS = ["13.127.182.78", "server2"]  // Add EC2 instance IPs here
+        SERVER_IPS = ['13.127.182.78']  // Add EC2 instance IPs here
     }
 
     stages {
