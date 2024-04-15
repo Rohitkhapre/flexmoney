@@ -15,9 +15,9 @@ pipeline {
         stage('Deploy to Servers') {
             steps {
                 script {
-                    sshagent(credentials: ['EC2']) {
+                    withCredentials([sshUserPrivateKey(credentialsId: 'EC2', keyFileVariable: 'SSH_KEY')]) {
                         SERVER_IPS.each { ip ->
-                            sshCommand remote: "user@$ip", command: "cd /home/ubuntu/flexmoney && git pull && docker-compose up -d"
+                            sshCommand remote: "user@$ip", command: "cd /home/ubuntu/flexmoney && git pull && docker-compose pull && docker-compose up -d", key: "${SSH_KEY}"
                         }
                     }
                 }
