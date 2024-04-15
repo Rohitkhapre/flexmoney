@@ -15,17 +15,18 @@ pipeline {
 
         stage('Build and Push Docker Images') {
             steps {
-                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    script {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                         // Docker login
                         sh "echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin $DOCKER_REGISTRY_URL"
 
-                    // Build and push Docker images
-                    docker.build("backend-app", "./backend")
-                    docker.build("frontend-app", "./frontend")
-                    docker.withRegistry("$DOCKER_REGISTRY_URL", "dockerhub") {
-                        docker.image("backend-app").push("latest")
-                        docker.image("frontend-app").push("latest")
+                        // Build and push Docker images
+                        docker.build("backend-app", "./backend")
+                        docker.build("frontend-app", "./frontend")
+                        docker.withRegistry("$DOCKER_REGISTRY_URL", "dockerhub") {
+                            docker.image("backend-app").push("latest")
+                            docker.image("frontend-app").push("latest")
+                        }
                     }
                 }
             }
@@ -53,4 +54,3 @@ pipeline {
         }
     }
 }
-
