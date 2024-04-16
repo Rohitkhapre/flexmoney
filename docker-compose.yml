@@ -14,18 +14,20 @@ services:
       - web
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    #build:
+      #context: ./backend
+      #dockerfile: Dockerfile
+    image: rohitpawar27/backend
     ports:
       - "8080:8080"
     networks:
       - web
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    #build:
+      # context: ./frontend
+      #dockerfile: Dockerfile
+    image: rohitpawar27/frontend
     ports:
       - "8081:80"  # Assuming frontend serves on port 80 internally
     networks:
