@@ -1,46 +1,43 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_HUB_CREDENTIALS = credentials('dockerhub') // Jenkins credentials ID for Docker Hub login
-        BACKEND_IMAGE_NAME = 'rohitpawar27/backend'
-        FRONTEND_IMAGE_NAME = 'rohitpawar27/frontend'
-        DOCKERFILE_BACKEND = './backend/Dockerfile'
-        DOCKERFILE_FRONTEND = './frontend/Dockerfile'
-    }
-    
     stages {
-        stage('Checkout Source Code') {
+        stage('SCM') {
             steps {
-                checkout scm
+                git changelog: false, poll: false, url: 'https://github.com/Rohitkhapre/flexmoney.git'
             }
         }
-
-        stage('Build Backend Image') {
+        
+        stage('Frontend Docker build & push') {
             steps {
                 script {
-                    docker.build(BACKEND_IMAGE_NAME, "-f ${DOCKERFILE_BACKEND} ./backend")
+                    withDockerRegistry(credentialsId: 'dockerhub') {
+                        sh "docker build -t rohitpawar27/frontend:latest -f frontend/Dockerfile frontend"
+                        sh "docker push rohitpawar27/frontend:latest"
+                    }
                 }
             }
         }
         
-        stage('Build Frontend Image') {
+        stage('Backend Docker build & push') {
             steps {
                 script {
-                    docker.build(FRONTEND_IMAGE_NAME, "-f ${DOCKERFILE_FRONTEND} ./frontend")
-                }
-            }
-        }
-        
-        stage('Push Images to Docker Hub') {
-            steps {
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', DOCKER_HUB_CREDENTIALS) {
-                        docker.image(BACKEND_IMAGE_NAME).push()
-                        docker.image(FRONTEND_IMAGE_NAME).push()
+                    withDockerRegistry(credentialsId: 'dockerhub') {
+                        sh "docker build -t rohitpawar27/backend:latest -f backend/Dockerfile2 backend"
+                        sh "docker push rohitpawar27/backend:latest"
                     }
                 }
             }
         }
     }
+    
+    post {
+        success {
+            echo "Pipeline finished successfully!"
+        }
+        failure {
+            echo "Pipeline failed!"
+        }
+    }
 }
+
